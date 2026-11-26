@@ -21,8 +21,35 @@ const app = express()
 // Connect to MongoDB Atlas
 connectDB()
 
-// Global Middleware
-app.use(cors())
+// Global Middleware - Configure CORS for local dev and deployed frontend
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+].filter(Boolean)
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow server-to-server, mobile or curl requests with no origin
+      if (!origin) return callback(null, true)
+
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(origin) ||
+        process.env.NODE_ENV !== 'production'
+
+      if (isAllowed) {
+        return callback(null, true)
+      }
+      return callback(null, true)
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+)
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 

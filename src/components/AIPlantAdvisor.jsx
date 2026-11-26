@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Camera, Upload, Sparkles, Leaf, Sun, Droplets, Sprout, RotateCcw, LoaderCircle, ImagePlus, ShieldCheck, AlertCircle } from 'lucide-react'
+import { api } from '../services/api'
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024
 
@@ -33,12 +34,7 @@ export default function AIPlantAdvisor() {
         reader.onerror = reject
         reader.readAsDataURL(image)
       })
-      const response = await fetch('/api/identify-plant', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64, mimeType: image.type }),
-      })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Plant identification failed.')
+      const data = await api.plantAdvisor.identify(base64, image.type)
       setResult(data)
     } catch (err) { setError(err.message || 'Something went wrong. Please try again.') }
     finally { setLoading(false) }

@@ -5,6 +5,19 @@
 
 const TOKEN_KEY = 'greenroots_jwt_token_v1'
 
+/**
+ * Resolves API URL dynamically:
+ * - In production (Vercel): Uses VITE_API_URL (e.g. https://greenroots-backend.onrender.com)
+ * - In local development: Defaults to relative /api using Vite dev proxy
+ */
+export const getApiUrl = (endpoint) => {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint
+  }
+  const base = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+  return `${base}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
+}
+
 export const getToken = () => {
   try {
     return localStorage.getItem(TOKEN_KEY)
@@ -46,7 +59,8 @@ async function request(endpoint, options = {}) {
     headers,
   }
 
-  const response = await fetch(endpoint, config)
+  const fullUrl = getApiUrl(endpoint)
+  const response = await fetch(fullUrl, config)
   let data
   try {
     data = await response.json()
@@ -111,7 +125,8 @@ export const api = {
     uploadImage: (imageFileOrBase64) => {
       if (typeof window !== 'undefined' && imageFileOrBase64 instanceof FormData) {
         const token = getToken()
-        return fetch('/api/upload', {
+        const fullUrl = getApiUrl('/api/upload')
+        return fetch(fullUrl, {
           method: 'POST',
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),

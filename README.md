@@ -1,45 +1,75 @@
-# GreenRoots
+# GreenRoots — Hyperlocal Gardening Marketplace (MERN Stack)
 
-GreenRoots is a React + Vite hyperlocal gardening marketplace demo.
+GreenRoots connects local home gardeners, terrace growers, and plant enthusiasts across Indian neighbourhoods to buy, sell, and exchange healthy plants, cuttings, organic compost, and garden essentials.
 
-## Run locally
+---
 
-1. Open this `GreenRoots` folder in VS Code.
-2. Install dependencies:
+## Architecture Overview
 
-   ```bash
-   npm install
-   ```
+- **Frontend**: React 19, Vite, Tailwind-styled components, Lucide icons.
+- **Backend**: Node.js, Express 5, Mongoose ODM, JWT Authentication, bcrypt password hashing.
+- **Database**: MongoDB Atlas (Collection: `greenroots`).
+- **Cloud Media**: Cloudinary image storage with automatic optimization and size validation.
+- **AI Assistant**: Google Gemini AI (`@google/genai` using `gemini-3.7-flash`) for hyperlocal plant identification and care guidance.
 
-3. Start the development server:
+---
 
-   ```bash
-   npm run dev
-   ```
+## Local Development
 
-4. Open the local URL printed by Vite (normally `http://localhost:5173`).
+### 1. Backend Setup
+```bash
+cd Backend
+npm install
+npm run dev
+```
+Runs Express on `http://localhost:5000`.
 
-## Plant photo identification (Gemini)
+### 2. Frontend Setup
+```bash
+# In the project root (GreenRoots)
+npm install
+npm run dev
+```
+Runs Vite on `http://localhost:5173` with automatic proxy to the Express backend.
 
-The Plant Scanner supports selecting an image and using a device camera. Real AI analysis requires a Gemini API key.
+---
 
-1. Create an API key in [Google AI Studio](https://aistudio.google.com/apikey).
-2. In the project root, create a file named `.env`.
-3. Add this line:
+## Production Deployment Guide
 
-   ```env
-   GEMINI_API_KEY=put_your_key_here
-   ```
+### A. Deploy Backend to Render
 
-4. Stop the Vite server with `Ctrl + C`, then run `npm run dev` again.
-5. Scroll to **GreenRoots AI Lab**, upload or capture a plant photo, then choose **Identify this plant**.
+1. Create a **New Web Service** on [Render](https://dashboard.render.com).
+2. Connect your GitHub repository `GreenRoots`.
+3. Configure the service settings:
+   - **Root Directory**: `Backend`
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `node server.js`
+   - **Health Check Path**: `/api/health`
+4. In **Environment Variables**, add:
+   - `NODE_ENV` = `production`
+   - `MONGO_URI` = *(Your MongoDB Atlas connection string)*
+   - `JWT_SECRET` = *(Your secure JWT secret string)*
+   - `CLIENT_URL` = *(Your Vercel frontend URL, e.g. `https://your-app.vercel.app`)*
+   - `CLOUDINARY_CLOUD_NAME` = *(Your Cloudinary Cloud Name)*
+   - `CLOUDINARY_API_KEY` = *(Your Cloudinary API Key)*
+   - `CLOUDINARY_API_SECRET` = *(Your Cloudinary API Secret)*
+   - `GEMINI_API_KEY` = *(Your Google AI Studio Gemini API Key)*
+5. In **MongoDB Atlas**:
+   - Go to **Security** &rarr; **Network Access**.
+   - Click **Add IP Address** &rarr; **Allow Access from Anywhere** (`0.0.0.0/0`) so Render's cloud servers can connect to your database cluster.
 
-The key is read by the Vite development server and is not placed in frontend code. Do not commit or share your `.env` file. The API route in `vite.config.js` is a local development integration; before deploying the project, move this route to a protected backend/serverless function and configure the key there.
+---
 
-If no API key is configured, image selection and preview still work, but analysis will show a setup message rather than inventing an identification.
+### B. Deploy Frontend to Vercel
 
-## Current project notes
-
-- Marketplace listings and seller profiles are illustrative demo data.
-- Category and listing photos use remote Unsplash image URLs and require an internet connection.
-- Scroll reveal and reduced-motion support are implemented with CSS and the browser Intersection Observer API.
+1. Create a **New Project** on [Vercel](https://vercel.com/new).
+2. Import your GitHub repository `GreenRoots`.
+3. Configure project settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `./` (or leave default root)
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. In **Environment Variables**, add:
+   - `VITE_API_URL` = `https://your-backend-service.onrender.com` *(your deployed Render backend URL, without trailing slash)*
+5. Click **Deploy**.
